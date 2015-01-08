@@ -1,0 +1,24 @@
+---
+- name: make a build dir
+  file: state=directory name=/root/gogs-dockerized
+
+- name: put Dockerfile
+  template: src=Dockerfile dest=/root/gogs-dockerized/Dockerfile
+
+#- name: put bind.rb
+#  template: src=bind.rb dest=/root/bind-dockerized/bind.rb
+
+- name: build a Docker image for gogs
+  command: docker build -t gitinsky/gogs:0.1.0 --rm /root/gogs-dockerized
+
+- name: check if a gogs container is started
+  command: bash -c "docker ps | grep gogs"
+  ignore_errors: True
+  register: result
+
+#- name: chown syncthing volume
+#  command: chown -R {{ syncthing_uid }} {{ ext_syncthing_volume }}
+
+- name: start a gogs container
+  command: docker run -d -p=2222:22 -name gogs gitinsky/gogs:0.1.0
+  when: result|failed
