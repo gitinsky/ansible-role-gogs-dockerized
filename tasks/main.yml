@@ -5,8 +5,14 @@
 - name: put Dockerfile
   template: src=Dockerfile dest=/root/gogs-dockerized/Dockerfile
 
-#- name: put bind.rb
-#  template: src=bind.rb dest=/root/bind-dockerized/bind.rb
+- name: put gogs.rb
+  template: src=gogs.rb dest=/root/gogs-dockerized/gogs.rb
+
+- name: put app.ini
+  template: src=app.ini dest=/root/gogs-dockerized/app.ini
+
+- name: put gogs.sh
+  template: src=gogs.sh dest=/root/gogs-dockerized/gogs.sh mode=0755
 
 - name: build a Docker image for gogs
   command: docker build -t gitinsky/gogs:0.1.0 --rm /root/gogs-dockerized
@@ -16,9 +22,6 @@
   ignore_errors: True
   register: result
 
-#- name: chown syncthing volume
-#  command: chown -R {{ syncthing_uid }} {{ ext_syncthing_volume }}
-
 - name: start a gogs container
-  command: docker run -d -p=2222:22 -name gogs gitinsky/gogs:0.1.0
+  command: docker run -d -p=2222:22 -p=3000:3000 --link mysql:db -v {{ ext_gogs_repo_volume }}:/gogs-repositories -name gogs gitinsky/gogs:0.1.0
   when: result|failed
